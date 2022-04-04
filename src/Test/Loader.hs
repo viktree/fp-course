@@ -19,37 +19,38 @@ module Test.Loader
   , test_MoreParser
   , test_JsonParser
   , test_Cheque
-
   , test
   , allTests
-  )
-  where
+  ) where
 
-import Test.ApplicativeTest (test_Applicative)
-import Test.ChequeTest (test_Cheque)
-import Test.ComonadTest (test_Comonad)
-import Test.ExtendTest (test_Extend)
-import Test.FunctorTest (test_Functor)
-import Test.JsonParserTest (test_JsonParser)
-import Test.ListTest (test_List)
-import Test.ListZipperTest (test_ListZipper)
-import Test.MonadTest (test_Monad)
-import Test.MoreParserTest (test_MoreParser)
-import Test.OptionalTest (test_Optional)
-import Test.ParserTest (test_Parser)
-import Test.StateTTest (test_StateT)
-import Test.StateTest (test_State)
-import Test.TraversableTest (test_Traversable)
-import Test.ValidationTest (test_Validation)
+import           Test.ApplicativeTest           ( test_Applicative )
+import           Test.ChequeTest                ( test_Cheque )
+import           Test.ComonadTest               ( test_Comonad )
+import           Test.ExtendTest                ( test_Extend )
+import           Test.FunctorTest               ( test_Functor )
+import           Test.JsonParserTest            ( test_JsonParser )
+import           Test.ListTest                  ( test_List )
+import           Test.ListZipperTest            ( test_ListZipper )
+import           Test.MonadTest                 ( test_Monad )
+import           Test.MoreParserTest            ( test_MoreParser )
+import           Test.OptionalTest              ( test_Optional )
+import           Test.ParserTest                ( test_Parser )
+import           Test.StateTTest                ( test_StateT )
+import           Test.StateTest                 ( test_State )
+import           Test.TraversableTest           ( test_Traversable )
+import           Test.ValidationTest            ( test_Validation )
 
-import Data.String (fromString)
+import           Data.String                    ( fromString )
 
-import Test.Framework (TestTree, test, testGroup)
+import           Test.Framework                 ( TestTree
+                                                , test
+                                                , testGroup
+                                                )
 
 allTests :: TestTree
-allTests =
-  testGroup "Tests" [
-    test_Optional
+allTests = testGroup
+  "Tests"
+  [ test_Optional
   , test_List
   , test_Functor
   , test_Applicative

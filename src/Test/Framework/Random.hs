@@ -40,21 +40,28 @@ no dependencies.
 -}
 
 module Test.Framework.Random
-        ( RandomGen(next, genRange, split)
-        , StdGen
-        , mkStdGen
-        , newStdGen
-        , Random ( randomR )
-        ) where
+  ( RandomGen(genRange, next, split)
+  , StdGen
+  , mkStdGen
+  , newStdGen
+  , Random(randomR)
+  ) where
 
-import Prelude
-import Data.Bits
-import Data.Int
-import System.CPUTime   ( getCPUTime )
-import Data.Time        ( getCurrentTime, UTCTime(..) )
-import Data.Ratio       ( numerator, denominator )
-import Data.IORef       ( IORef, atomicModifyIORef', newIORef )
-import System.IO.Unsafe ( unsafePerformIO )
+import           Data.Bits
+import           Data.IORef                     ( IORef
+                                                , atomicModifyIORef'
+                                                , newIORef
+                                                )
+import           Data.Int
+import           Data.Ratio                     ( denominator
+                                                , numerator
+                                                )
+import           Data.Time                      ( UTCTime(..)
+                                                , getCurrentTime
+                                                )
+import           Prelude
+import           System.CPUTime                 ( getCPUTime )
+import           System.IO.Unsafe               ( unsafePerformIO )
 
 getTime :: IO (Integer, Integer)
 getTime = do
@@ -128,11 +135,10 @@ instance of 'StdGen' has the following properties:
 * Different argument strings are likely to result in different results.
 
 -}
-data StdGen
- = StdGen !Int32 !Int32
+data StdGen = StdGen !Int32 !Int32
 
 instance RandomGen StdGen where
-  next  = stdNext
+  next = stdNext
   genRange _ = stdRange
 
   split = stdSplit
@@ -146,13 +152,13 @@ initialized to values in the range [1, 2147483562] and [1, 2147483398]
 respectively."
 -}
 mkStdGen32 :: Int32 -> StdGen
-mkStdGen32 sMaybeNegative = StdGen (s1+1) (s2+1)
-      where
+mkStdGen32 sMaybeNegative = StdGen (s1 + 1) (s2 + 1)
+ where
         -- We want a non-negative number, but we can't just take the abs
         -- of sMaybeNegative as -minBound == minBound.
-        s       = sMaybeNegative .&. maxBound
-        (q, s1) = s `divMod` 2147483562
-        s2      = q `mod` 2147483398
+  s       = sMaybeNegative .&. maxBound
+  (q, s1) = s `divMod` 2147483562
+  s2      = q `mod` 2147483398
 
 createStdGen :: Integer -> StdGen
 createStdGen s = mkStdGen32 $ fromIntegral s
@@ -172,87 +178,90 @@ class Random a where
   -- depending on the implementation and the interval.
   randomR :: RandomGen g => (a,a) -> g -> (a,g)
 
-instance Random Integer where randomR = randomIvalInteger
-instance Random Int     where randomR = randomIvalIntegral
+instance Random Integer where
+  randomR = randomIvalInteger
+instance Random Int     where
+  randomR = randomIvalIntegral
 
 mkStdRNG :: Integer -> IO StdGen
 mkStdRNG o = do
-    ct          <- getCPUTime
-    (sec, psec) <- getTime
-    return (createStdGen (sec * 12345 + psec + ct + o))
+  ct          <- getCPUTime
+  (sec, psec) <- getTime
+  return (createStdGen (sec * 12345 + psec + ct + o))
 
 -- The two integer functions below take an [inclusive,inclusive] range.
 randomIvalIntegral :: (RandomGen g, Integral a) => (a, a) -> g -> (a, g)
-randomIvalIntegral (l,h) = randomIvalInteger (toInteger l, toInteger h)
+randomIvalIntegral (l, h) = randomIvalInteger (toInteger l, toInteger h)
 
 {-# SPECIALIZE randomIvalInteger :: (Num a) =>
     (Integer, Integer) -> StdGen -> (a, StdGen) #-}
 
 randomIvalInteger :: (RandomGen g, Num a) => (Integer, Integer) -> g -> (a, g)
-randomIvalInteger (l,h) rng
- | l > h     = randomIvalInteger (h,l) rng
- | otherwise = case (f 1 0 rng) of (v, rng') -> (fromInteger (l + v `mod` k), rng')
-     where
-       (genlo, genhi) = genRange rng
-       b = fromIntegral genhi - fromIntegral genlo + 1
+randomIvalInteger (l, h) rng
+  | l > h = randomIvalInteger (h, l) rng
+  | otherwise = case (f 1 0 rng) of
+    (v, rng') -> (fromInteger (l + v `mod` k), rng')
+ where
+  (genlo, genhi) = genRange rng
+  b              = fromIntegral genhi - fromIntegral genlo + 1
 
-       -- Probabilities of the most likely and least likely result
-       -- will differ at most by a factor of (1 +- 1/q).  Assuming the RandomGen
-       -- is uniform, of course
+  -- Probabilities of the most likely and least likely result
+  -- will differ at most by a factor of (1 +- 1/q).  Assuming the RandomGen
+  -- is uniform, of course
 
-       -- On average, log q / log b more random values will be generated
-       -- than the minimum
-       q = 1000
-       k = h - l + 1
-       magtgt = k * q
+  -- On average, log q / log b more random values will be generated
+  -- than the minimum
+  q              = 1000
+  k              = h - l + 1
+  magtgt         = k * q
 
-       -- generate random values until we exceed the target magnitude
-       f mag v g | mag >= magtgt = (v, g)
-                 | otherwise = v' `seq`f (mag*b) v' g' where
-                        (x,g') = next g
-                        v' = (v * b + (fromIntegral x - fromIntegral genlo))
+  -- generate random values until we exceed the target magnitude
+  f mag v g | mag >= magtgt = (v, g)
+            | otherwise     = v' `seq` f (mag * b) v' g'   where
+    (x, g') = next g
+    v'      = (v * b + (fromIntegral x - fromIntegral genlo))
 
-stdRange :: (Int,Int)
+stdRange :: (Int, Int)
 stdRange = (1, 2147483562)
 
 stdNext :: StdGen -> (Int, StdGen)
 -- Returns values in the range stdRange
 stdNext (StdGen s1 s2) = (fromIntegral z', StdGen s1'' s2'')
-        where   z'   | z < 1 = z + 2147483562
-                     | otherwise = z
-                z    = s1'' - s2''
+ where
+  z' | z < 1     = z + 2147483562
+     | otherwise = z
+  z   = s1'' - s2''
 
-                k    = s1 `quot` 53668
-                s1'  = 40014 * (s1 - k * 53668) - k * 12211
-                s1'' | s1' < 0 = s1' + 2147483563
-                     | otherwise = s1'
+  k   = s1 `quot` 53668
+  s1' = 40014 * (s1 - k * 53668) - k * 12211
+  s1'' | s1' < 0   = s1' + 2147483563
+       | otherwise = s1'
 
-                k'   = s2 `quot` 52774
-                s2'  = 40692 * (s2 - k' * 52774) - k' * 3791
-                s2'' | s2' < 0 = s2' + 2147483399
-                     | otherwise = s2'
+  k'  = s2 `quot` 52774
+  s2' = 40692 * (s2 - k' * 52774) - k' * 3791
+  s2'' | s2' < 0   = s2' + 2147483399
+       | otherwise = s2'
 
-stdSplit            :: StdGen -> (StdGen, StdGen)
-stdSplit std@(StdGen s1 s2)
-                     = (left, right)
-                       where
+stdSplit :: StdGen -> (StdGen, StdGen)
+stdSplit std@(StdGen s1 s2) = (left, right)
+ where
                         -- no statistical foundation for this!
-                        left    = StdGen new_s1 t2
-                        right   = StdGen t1 new_s2
+  left  = StdGen new_s1 t2
+  right = StdGen t1 new_s2
 
-                        new_s1 | s1 == 2147483562 = 1
-                               | otherwise        = s1 + 1
+  new_s1 | s1 == 2147483562 = 1
+         | otherwise        = s1 + 1
 
-                        new_s2 | s2 == 1          = 2147483398
-                               | otherwise        = s2 - 1
+  new_s2 | s2 == 1   = 2147483398
+         | otherwise = s2 - 1
 
-                        StdGen t1 t2 = snd (next std)
+  StdGen t1 t2 = snd (next std)
 
 {-# NOINLINE theStdGen #-}
 theStdGen :: IORef StdGen
-theStdGen  = unsafePerformIO $ do
-   rng <- mkStdRNG 0
-   newIORef rng
+theStdGen = unsafePerformIO $ do
+  rng <- mkStdRNG 0
+  newIORef rng
 
 -- |Applies 'split' to the current global random generator,
 -- updates it with one of the results, and returns the other.

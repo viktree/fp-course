@@ -5,15 +5,15 @@
 
 module Course.JsonParser where
 
-import Course.Core
-import Course.Parser
-import Course.MoreParser
-import Course.JsonValue
-import Course.Functor
-import Course.Applicative
-import Course.Monad
-import Course.List
-import Course.Optional
+import           Course.Applicative
+import           Course.Core
+import           Course.Functor
+import           Course.JsonValue
+import           Course.List
+import           Course.Monad
+import           Course.MoreParser
+import           Course.Optional
+import           Course.Parser
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -41,44 +41,32 @@ data SpecialCharacter =
   deriving (Eq, Ord, Show)
 
 -- NOTE: This is not inverse to @toSpecialCharacter@.
-fromSpecialCharacter ::
-  SpecialCharacter
-  -> Char
-fromSpecialCharacter BackSpace =
-  chr 0x08
-fromSpecialCharacter FormFeed =
-  chr 0x0C
-fromSpecialCharacter NewLine =
-  '\n'
-fromSpecialCharacter CarriageReturn =
-  '\r'
-fromSpecialCharacter Tab =
-  '\t'
-fromSpecialCharacter VerticalTab =
-  '\v'
-fromSpecialCharacter SingleQuote =
-  '\''
-fromSpecialCharacter DoubleQuote =
-  '"'
-fromSpecialCharacter Backslash =
-  '\\'
+fromSpecialCharacter :: SpecialCharacter -> Char
+fromSpecialCharacter BackSpace      = chr 0x08
+fromSpecialCharacter FormFeed       = chr 0x0C
+fromSpecialCharacter NewLine        = '\n'
+fromSpecialCharacter CarriageReturn = '\r'
+fromSpecialCharacter Tab            = '\t'
+fromSpecialCharacter VerticalTab    = '\v'
+fromSpecialCharacter SingleQuote    = '\''
+fromSpecialCharacter DoubleQuote    = '"'
+fromSpecialCharacter Backslash      = '\\'
 
 -- NOTE: This is not inverse to @fromSpecialCharacter@.
-toSpecialCharacter ::
-  Char
-  -> Optional SpecialCharacter
+toSpecialCharacter :: Char -> Optional SpecialCharacter
 toSpecialCharacter c =
-  let table = ('b', BackSpace) :.
-              ('f', FormFeed) :.
-              ('n', NewLine) :.
-              ('r', CarriageReturn) :.
-              ('t', Tab) :.
-              ('v', VerticalTab) :.
-              ('\'', SingleQuote) :.
-              ('"' , DoubleQuote) :.
-              ('\\', Backslash) :.
-              Nil
-  in snd <$> find ((==) c . fst) table
+  let table =
+        ('b', BackSpace)
+          :. ('f' , FormFeed)
+          :. ('n' , NewLine)
+          :. ('r' , CarriageReturn)
+          :. ('t' , Tab)
+          :. ('v' , VerticalTab)
+          :. ('\'', SingleQuote)
+          :. ('"' , DoubleQuote)
+          :. ('\\', Backslash)
+          :. Nil
+  in  snd <$> find ((==) c . fst) table
 
 -- | Parse a JSON string. Handle double-quotes, special characters, hexadecimal characters. See http://json.org for the full list of control characters in JSON.
 --
@@ -110,10 +98,8 @@ toSpecialCharacter c =
 --
 -- >>> isErrorResult (parse jsonString "\"\\abc\"def")
 -- True
-jsonString ::
-  Parser Chars
-jsonString =
-  error "todo: Course.JsonParser#jsonString"
+jsonString :: Parser Chars
+jsonString = error "todo: Course.JsonParser#jsonString"
 
 -- | Parse a JSON rational.
 --
@@ -146,10 +132,8 @@ jsonString =
 --
 -- >>> isErrorResult (parse jsonNumber "abc")
 -- True
-jsonNumber ::
-  Parser Rational
-jsonNumber =
-  error "todo: Course.JsonParser#jsonNumber"
+jsonNumber :: Parser Rational
+jsonNumber = error "todo: Course.JsonParser#jsonNumber"
 
 -- | Parse a JSON true literal.
 --
@@ -160,10 +144,8 @@ jsonNumber =
 --
 -- >>> isErrorResult (parse jsonTrue "TRUE")
 -- True
-jsonTrue ::
-  Parser Chars
-jsonTrue =
-  error "todo: Course.JsonParser#jsonTrue"
+jsonTrue :: Parser Chars
+jsonTrue = error "todo: Course.JsonParser#jsonTrue"
 
 -- | Parse a JSON false literal.
 --
@@ -174,10 +156,8 @@ jsonTrue =
 --
 -- >>> isErrorResult (parse jsonFalse "FALSE")
 -- True
-jsonFalse ::
-  Parser Chars
-jsonFalse =
-  error "todo: Course.JsonParser#jsonFalse"
+jsonFalse :: Parser Chars
+jsonFalse = error "todo: Course.JsonParser#jsonFalse"
 
 -- | Parse a JSON null literal.
 --
@@ -188,10 +168,8 @@ jsonFalse =
 --
 -- >>> isErrorResult (parse jsonNull "NULL")
 -- True
-jsonNull ::
-  Parser Chars
-jsonNull =
-  error "todo: Course.JsonParser#jsonNull"
+jsonNull :: Parser Chars
+jsonNull = error "todo: Course.JsonParser#jsonNull"
 
 -- | Parse a JSON array.
 --
@@ -211,10 +189,8 @@ jsonNull =
 --
 -- >>> parse jsonArray "[true, \"abc\", [false]]"
 -- Result >< [JsonTrue,JsonString "abc",JsonArray [JsonFalse]]
-jsonArray ::
-  Parser (List JsonValue)
-jsonArray =
-  error "todo: Course.JsonParser#jsonArray"
+jsonArray :: Parser (List JsonValue)
+jsonArray = error "todo: Course.JsonParser#jsonArray"
 
 -- | Parse a JSON object.
 --
@@ -231,10 +207,8 @@ jsonArray =
 --
 -- >>> parse jsonObject "{ \"key1\" : true , \"key2\" : false } xyz"
 -- Result >xyz< [("key1",JsonTrue),("key2",JsonFalse)]
-jsonObject ::
-  Parser Assoc
-jsonObject =
-  error "todo: Course.JsonParser#jsonObject"
+jsonObject :: Parser Assoc
+jsonObject = error "todo: Course.JsonParser#jsonObject"
 
 -- | Parse a JSON value.
 --
@@ -248,16 +222,11 @@ jsonObject =
 --
 -- >>> parse jsonObject "{ \"key1\" : true , \"key2\" : [7, false] , \"key3\" : { \"key4\" : null } }"
 -- Result >< [("key1",JsonTrue),("key2",JsonArray [JsonRational (7 % 1),JsonFalse]),("key3",JsonObject [("key4",JsonNull)])]
-jsonValue ::
-  Parser JsonValue
-jsonValue =
-   error "todo: Course.JsonParser#jsonValue"
+jsonValue :: Parser JsonValue
+jsonValue = error "todo: Course.JsonParser#jsonValue"
 
 -- | Read a file into a JSON value.
 --
 -- /Tip:/ Use @System.IO#readFile@ and `jsonValue`.
-readJsonValue ::
-  FilePath
-  -> IO (ParseResult JsonValue)
-readJsonValue =
-  error "todo: Course.JsonParser#readJsonValue"
+readJsonValue :: FilePath -> IO (ParseResult JsonValue)
+readJsonValue = error "todo: Course.JsonParser#readJsonValue"

@@ -1,17 +1,20 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE RebindableSyntax #-}
 
 module Course.Alternative where
 
-import Course.Applicative
-import Course.Core
-import Course.Functor
-import Course.List
-import Course.Optional
-import Course.Parser
-import qualified Prelude as P(fmap, return, (>>=))
+import           Course.Applicative
+import           Course.Core
+import           Course.Functor
+import           Course.List
+import           Course.Optional
+import           Course.Parser
+import qualified Prelude                       as P
+                                                ( (>>=)
+                                                , fmap
+                                                , return
+                                                )
 
 -- | All instances of the `Alternative` type-class must satisfy three laws.
 -- These laws are not checked by the compiler. These laws are given as:
@@ -57,16 +60,10 @@ infixl 3 <|>
 -- >>> Full 3 <|> Full 4
 -- Full 3
 instance Alternative Optional where
-  zero ::
-    Optional a
-  zero =
-    error "todo: Course.Alternative zero#instance Optional"
-  (<|>) ::
-    Optional a
-    -> Optional a
-    -> Optional a
-  (<|>) =
-    error "todo: Course.Alternative (<|>)#instance Optional"
+zero :: Optional a
+zero = error "todo: Course.Alternative zero#instance Optional"
+(<|>) :: Optional a -> Optional a -> Optional a
+(<|>) = error "todo: Course.Alternative (<|>)#instance Optional"
 
 -- | Append the lists.
 -- This instance views lists as a non-deterministic choice between elements,
@@ -81,16 +78,10 @@ instance Alternative Optional where
 -- >>> 3 :. 4 :. 5 :. Nil <|> 6 :. 7 :. 8 :. Nil
 -- [3,4,5,6,7,8]
 instance Alternative List where
-  zero ::
-    List a
-  zero =
-    error "todo: Course.Alternative zero#instance List"
-  (<|>) ::
-    List a
-    -> List a
-    -> List a
-  (<|>) =
-    error "todo: Course.Alternative (<|>)#instance List"
+zero :: List a
+zero = error "todo: Course.Alternative zero#instance List"
+(<|>) :: List a -> List a -> List a
+(<|>) = error "todo: Course.Alternative (<|>)#instance List"
 
 -- | Choose the first succeeding parser
 --
@@ -108,16 +99,10 @@ instance Alternative List where
 -- >>> parse (constantParser UnexpectedEof <|> valueParser 'v') "abc"
 -- Result >abc< 'v'
 instance Alternative Parser where
-  zero ::
-    Parser a
-  zero =
-    error "todo: Course.Alternative zero#instance Parser"
-  (<|>) ::
-    Parser a
-    -> Parser a
-    -> Parser a
-  (<|>) =
-    error "todo: Course.Alternative (<|>)#instance Parser"
+zero :: Parser a
+zero = error "todo: Course.Alternative zero#instance Parser"
+(<|>) :: Parser a -> Parser a -> Parser a
+(<|>) = error "todo: Course.Alternative (<|>)#instance Parser"
 
 -- | Run the provided Alternative action zero or more times, collecting
 -- a list of the results.
@@ -142,8 +127,7 @@ instance Alternative Parser where
 -- >>> parse (many (character *> valueParser 'v')) ""
 -- Result >< ""
 many :: Alternative k => k a -> k (List a)
-many =
-  error "todo: Course.Alternative many"
+many = error "todo: Course.Alternative many"
 
 -- | Run the provided Alternative action one or more times, collecting
 -- a list of the results.
@@ -159,8 +143,7 @@ many =
 -- >>> isErrorResult (parse (some (character *> valueParser 'v')) "")
 -- True
 some :: Alternative k => k a -> k (List a)
-some =
-  error "todo: Course.Alternative some"
+some = error "todo: Course.Alternative some"
 
 -- | Combine a list of alternatives
 --
@@ -175,5 +158,4 @@ some =
 --
 -- /Note:/ In the standard library, this function is called @asum@
 aconcat :: Alternative k => List (k a) -> k a
-aconcat =
-  error "todo: Course.Alternative aconcat"
+aconcat = error "todo: Course.Alternative aconcat"
